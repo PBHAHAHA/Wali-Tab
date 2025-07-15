@@ -1,7 +1,7 @@
 {
-  "name": "vue-quick-extension",
+  "name": "wall-newtab",
   "version": "1.0.0",
-  "description": "Vue浏览器插件开发脚手架",
+  "description": "瓦砾新标签页、Wali-Tab、浏览器新标签页插件",
   "type": "module",
   "scripts": {
     "dev": "vite",
