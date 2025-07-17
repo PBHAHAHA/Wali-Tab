@@ -3,7 +3,9 @@ node_modules/
 
 # Build output
 dist/
+dist-firefox/
 build/
+packages/
 
 # Environment variables
 .env

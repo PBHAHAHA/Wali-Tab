@@ -13,30 +13,46 @@
       :current-engine="currentEngine"
       @close="closeSettings"
       @engine-change="handleEngineChange"
+      @open-quick-links-manager="openQuickLinksManagerFromSettings"
     />
     
-    <div class="search-container">
-      <div class="search-engines">
-        <button 
-          v-for="engine in searchEngines" 
-          :key="engine.name"
-          @click="setSearchEngine(engine)"
-          :class="['engine-btn', { active: currentEngine.name === engine.name }]"
-        >
-          {{ engine.name }}
-        </button>
+    <div class="main-content" :class="{ 'centered': !settings.showQuickLinks }">
+      <div class="search-container">
+        <div class="search-engines">
+          <button 
+            v-for="engine in searchEngines" 
+            :key="engine.name"
+            @click="setSearchEngine(engine)"
+            :class="['engine-btn', { active: currentEngine.name === engine.name }]"
+          >
+            {{ engine.name }}
+          </button>
+        </div>
+        <input 
+          v-model="searchQuery"
+          @keyup.enter="handleSearch"
+          @keydown="handleKeydown"
+          type="text"
+          :placeholder="`在 ${currentEngine.name} 中搜索或输入网址`"
+          class="search-input"
+          ref="searchInput"
+          autofocus
+        />
       </div>
-      <input 
-        v-model="searchQuery"
-        @keyup.enter="handleSearch"
-        @keydown="handleKeydown"
-        type="text"
-        :placeholder="`在 ${currentEngine.name} 中搜索或输入网址`"
-        class="search-input"
-        ref="searchInput"
-        autofocus
-      />
+      
+      <!-- 快捷链接区域 -->
+      <transition name="quicklinks-fade">
+        <div v-if="settings.showQuickLinks" class="quicklinks-section">
+          <QuickLinks @open-manager="openQuickLinksManager" />
+        </div>
+      </transition>
     </div>
+    
+    <!-- 快捷链接管理器 -->
+    <QuickLinksManager 
+      :is-visible="showQuickLinksManager"
+      @close="closeQuickLinksManager"
+    />
   </div>
 </template>
 
@@ -44,10 +60,13 @@
 import { ref, onMounted, computed, nextTick } from 'vue'
 import SettingsButton from './components/SettingsButton.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
+import QuickLinks from './components/QuickLinks.vue'
+import QuickLinksManager from './components/QuickLinksManager.vue'
 import { useSettings, useBackgroundSettings } from './composables/useSettings'
 
 const searchQuery = ref('')
 const showSettings = ref(false)
+const showQuickLinksManager = ref(false)
 const searchInput = ref<HTMLInputElement>()
 
 // 使用设置管理
@@ -149,6 +168,28 @@ const closeSettings = () => {
   })
 }
 
+// 快捷链接管理器控制
+const openQuickLinksManager = () => {
+  showQuickLinksManager.value = true
+}
+
+const closeQuickLinksManager = () => {
+  showQuickLinksManager.value = false
+  // 关闭管理器后重新聚焦搜索框
+  nextTick(() => {
+    searchInput.value?.focus()
+  })
+}
+
+const openQuickLinksManagerFromSettings = () => {
+  // 先关闭设置面板
+  closeSettings()
+  // 然后打开快捷链接管理器
+  setTimeout(() => {
+    openQuickLinksManager()
+  }, 100)
+}
+
 // 加载保存的搜索引擎设置
 const loadSettings = () => {
   const saved = localStorage.getItem('preferredSearchEngine')
@@ -190,17 +231,68 @@ onMounted(() => {
 .newtab-container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   transition: background-image 0.3s ease;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px 20px;
+  overflow-y: auto;
+}
+
+.main-content.centered {
+  justify-content: center;
+}
+
+.main-content:not(.centered) {
+  justify-content: flex-start;
 }
 
 .search-container {
   width: 100%;
   max-width: 600px;
-  padding: 0 20px;
+  margin-bottom: 40px;
+}
+
+.main-content.centered .search-container {
+  margin-bottom: 0;
   transform: translateY(-100px);
+}
+
+.quicklinks-section {
+  width: 100%;
+  max-width: 1200px;
+  flex: 1;
+}
+
+/* 快捷链接过渡动画 */
+.quicklinks-fade-enter-active,
+.quicklinks-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.quicklinks-fade-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.quicklinks-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 主内容区域过渡 */
+.main-content {
+  transition: justify-content 0.3s ease;
+}
+
+.main-content .search-container {
+  transition: margin-bottom 0.3s ease;
 }
 
 .search-engines {

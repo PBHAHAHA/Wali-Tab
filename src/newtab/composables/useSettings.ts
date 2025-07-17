@@ -6,6 +6,7 @@ interface Settings {
   customBackgroundUrl: string
   openInNewTab: boolean
   preferredSearchEngine: string
+  showQuickLinks: boolean
 }
 
 // 默认设置
@@ -13,7 +14,8 @@ const defaultSettings: Settings = {
   enableCustomBackground: false,
   customBackgroundUrl: '',
   openInNewTab: false,
-  preferredSearchEngine: 'Google'
+  preferredSearchEngine: 'Google',
+  showQuickLinks: false
 }
 
 // 设置键名

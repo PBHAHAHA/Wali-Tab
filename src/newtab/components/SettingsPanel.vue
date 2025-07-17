@@ -72,6 +72,33 @@
           </div>
         </div>
 
+        <!-- 快捷链接设置 -->
+        <div class="setting-section">
+          <h3>快捷链接</h3>
+          <div class="quicklinks-settings">
+            <label class="setting-option">
+              <input 
+                type="checkbox"
+                v-model="settings.showQuickLinks"
+                @change="updateSetting('showQuickLinks', $event.target.checked)"
+              />
+              <span>显示快捷链接</span>
+            </label>
+            <div v-if="settings.showQuickLinks" class="quicklinks-management">
+              <button @click="openQuickLinksManager" class="manage-quicklinks-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                管理快捷链接
+              </button>
+              <div class="quicklinks-stats">
+                <span>当前共有 {{ totalQuickLinks }} 个快捷链接</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 其他设置 -->
         <div class="setting-section">
           <h3>其他</h3>
@@ -95,8 +122,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits, onMounted } from 'vue'
+import { ref, defineProps, defineEmits, onMounted, computed } from 'vue'
 import { useSettings } from '../composables/useSettings'
+import { useQuickLinks } from '../composables/useQuickLinks'
 
 interface Props {
   isVisible: boolean
@@ -108,10 +136,17 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   close: []
   engineChange: [engine: { name: string; url: string }]
+  openQuickLinksManager: []
 }>()
 
 const { settings, updateSetting, resetAllSettings } = useSettings()
+const { quickLinks } = useQuickLinks()
 const selectedEngine = ref(props.currentEngine.name)
+
+// 快捷链接统计
+const totalQuickLinks = computed(() => {
+  return quickLinks.length
+})
 
 const closeSettings = () => {
   emit('close')
@@ -127,6 +162,10 @@ const resetSettings = () => {
     selectedEngine.value = props.searchEngines[0].name
     updateSearchEngine(props.searchEngines[0])
   }
+}
+
+const openQuickLinksManager = () => {
+  emit('openQuickLinksManager')
 }
 
 onMounted(() => {
@@ -342,6 +381,48 @@ onMounted(() => {
 
 .save-btn:hover {
   background: #0056CC;
+}
+
+.quicklinks-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quicklinks-management {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding-left: 24px;
+  border-left: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.manage-quicklinks-btn {
+  background: #007AFF;
+  border: none;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  transition: background 0.2s ease;
+  align-self: flex-start;
+}
+
+.manage-quicklinks-btn:hover {
+  background: #0056CC;
+}
+
+.quicklinks-stats {
+  font-size: 12px;
+  color: #666;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
 
 /* 响应式设计 */
